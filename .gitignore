@@ -1,0 +1,31 @@
+# node
+node_modules/
+npm-debug.log*
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# env
+.env
+.env.local
+.env.*.local
+
+# React web
+/web/node_modules
+/web/build
+/web/.DS_Store
+
+# Expo / React Native
+/mobile/node_modules
+/mobile/.expo
+/mobile/.expo-shared
+/mobile/android
+/mobile/ios
+/mobile/web-build
+
+# Editor/system
+.vscode/
+.cursor/
+.DS_Store
+.idea/
+*.log
