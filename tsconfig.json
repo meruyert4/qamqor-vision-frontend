@@ -16,6 +16,6 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src", "../src/components", "../src/config", "../src/App.js", "../src/reportWebVitals.js"]
 }
 

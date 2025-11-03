@@ -1,6 +1,7 @@
 import { LoginRequest, LoginResponse, ApiError } from "../types/user";
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 interface ApiResponse<T> {
   data?: T;
@@ -53,12 +54,19 @@ export const login = async (
 
     return await handleResponse<LoginResponse>(response);
   } catch (error) {
+    let errorMessage = "Не удалось подключиться к серверу";
+    
+    if (error instanceof TypeError && error.message === "Failed to fetch") {
+      errorMessage = `Не удалось подключиться к серверу API (${API_BASE_URL}). Убедитесь, что сервер запущен и доступен.`;
+    } else if (error instanceof Error) {
+      errorMessage = `Ошибка сети: ${error.message}`;
+    }
+    
     return {
       status: 500,
       error: {
         error: "Network error",
-        message:
-          error instanceof Error ? error.message : "Failed to connect to server",
+        message: errorMessage,
       },
     };
   }

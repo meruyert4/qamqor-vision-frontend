@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "./LoginForm.css";
+import { login } from "../shared/api/auth";
+import { LoginResponse } from "../shared/types/user";
 
 interface LoginFormData {
   email: string;
@@ -9,6 +11,7 @@ interface LoginFormData {
 interface LoginFormErrors {
   email?: string;
   password?: string;
+  general?: string;
 }
 
 const LoginForm: React.FC = () => {
@@ -17,6 +20,7 @@ const LoginForm: React.FC = () => {
     password: "",
   });
   const [errors, setErrors] = useState<LoginFormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -57,22 +61,99 @@ const LoginForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
+    setIsSubmitting(true);
+    setErrors({});
 
     try {
-      
+      const response = await login({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      alert("Добро пожаловать в систему мониторинга!");
-      setFormData({ email: "", password: "" });
+      if (response.error) {
+
+        let errorMessage = "Произошла ошибка при входе в систему";
+
+        switch (response.status) {
+          case 400:
+            errorMessage =
+              response.error.message || "Неверный формат данных запроса";
+            if (
+              response.error.message?.toLowerCase().includes("email") ||
+              response.error.message?.toLowerCase().includes("почта")
+            ) {
+              setErrors({
+                email: response.error.message,
+              });
+            } else {
+              setErrors({
+                general: response.error.message || errorMessage,
+              });
+            }
+            break;
+          case 401:
+            errorMessage =
+              response.error.message || "Неверный email или пароль";
+            setErrors({
+              general: errorMessage,
+            });
+            break;
+          case 403:
+            errorMessage =
+              response.error.message ||
+              "Email не подтвержден. Проверьте почту для подтверждения.";
+            setErrors({
+              general: errorMessage,
+            });
+            break;
+          case 500:
+            errorMessage =
+              response.error.message ||
+              "Ошибка сервера. Попробуйте позже.";
+            setErrors({
+              general: errorMessage,
+            });
+            break;
+          default:
+            setErrors({
+              general: response.error.message || errorMessage,
+            });
+        }
+        return;
+      }
+
+      if (response.data) {
+        // Успешный вход
+        const loginData: LoginResponse = response.data;
+
+        // Сохраняем токен в localStorage
+        localStorage.setItem("access_token", loginData.access_token);
+        localStorage.setItem("user", JSON.stringify(loginData.user));
+
+        alert(
+          `Добро пожаловать в систему мониторинга, ${loginData.user.first_name}!`
+        );
+
+        // Очищаем форму
+        setFormData({ email: "", password: "" });
+
+      }
     } catch (error) {
-      alert("Произошла ошибка при входе в систему");
+      setErrors({
+        general:
+          "Не удалось подключиться к серверу. Проверьте подключение к интернету.",
+      });
     } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -111,6 +192,7 @@ const LoginForm: React.FC = () => {
               value={formData.email}
               onChange={handleChange}
               className={`form-input ${errors.email ? "form-input-error" : ""}`}
+              disabled={isSubmitting}
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
@@ -126,18 +208,31 @@ const LoginForm: React.FC = () => {
               value={formData.password}
               onChange={handleChange}
               className={`form-input ${errors.password ? "form-input-error" : ""}`}
+              disabled={isSubmitting}
             />
             {errors.password && (
               <span className="error-message">{errors.password}</span>
             )}
           </div>
 
+          {errors.general && (
+            <div className="error-message error-general">{errors.general}</div>
+          )}
+
           <button
             type="submit"
             className="submit-button"
+            disabled={isSubmitting}
           >
             <span className="button-content">
-              Войти
+              {isSubmitting ? (
+                <>
+                  <span className="spinner"></span>
+                  Отправка...
+                </>
+              ) : (
+                "Войти"
+              )}
             </span>
           </button>
         </form>
