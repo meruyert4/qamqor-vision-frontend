@@ -80,52 +80,36 @@ const LoginForm: React.FC = () => {
       });
 
       if (response.error) {
-
         let errorMessage = "Произошла ошибка при входе в систему";
 
         switch (response.status) {
           case 400:
-            errorMessage =
-              response.error.message || "Неверный формат данных запроса";
-            if (
-              response.error.message?.toLowerCase().includes("email") ||
-              response.error.message?.toLowerCase().includes("почта")
-            ) {
-              setErrors({
-                email: response.error.message,
-              });
-            } else {
-              setErrors({
-                general: response.error.message || errorMessage,
-              });
-            }
+            errorMessage = "Неверный формат данных запроса";
+            setErrors({
+              general: errorMessage,
+            });
             break;
           case 401:
-            errorMessage =
-              response.error.message || "Неверный email или пароль";
+            errorMessage = "Неверный email или пароль";
             setErrors({
               general: errorMessage,
             });
             break;
           case 403:
-            errorMessage =
-              response.error.message ||
-              "Email не подтвержден. Проверьте почту для подтверждения.";
+            errorMessage = "Email не подтвержден. Проверьте почту для подтверждения.";
             setErrors({
               general: errorMessage,
             });
             break;
           case 500:
-            errorMessage =
-              response.error.message ||
-              "Ошибка сервера. Попробуйте позже.";
+            errorMessage = "Ошибка сервера. Попробуйте позже.";
             setErrors({
               general: errorMessage,
             });
             break;
           default:
             setErrors({
-              general: response.error.message || errorMessage,
+              general: errorMessage,
             });
         }
         return;
