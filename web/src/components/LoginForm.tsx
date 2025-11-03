@@ -19,9 +19,10 @@ const LoginForm: React.FC = () => {
   const [errors, setErrors] = useState<LoginFormErrors>({});
 
   const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     return emailRegex.test(email);
   };
+  
 
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
